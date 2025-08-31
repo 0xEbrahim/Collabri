@@ -4,7 +4,7 @@ import { UserEntity } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { SignUpDTO } from './dto/signUp.dto';
 import { ConfigService } from '@nestjs/config';
-import { IEmail } from 'src/common/types/types';
+import { IEmail, IResponse } from 'src/common/types/types';
 import path from 'path';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -42,7 +42,11 @@ export class AuthService {
         delay: 1000,
       },
     });
-
-    return user;
+    const response: IResponse = {
+      statusCode: 201,
+      message:
+        'Account created successfully, You received an email to verify you account please check your account.',
+    };
+    return response;
   }
 }
