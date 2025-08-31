@@ -4,6 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import fs from 'fs';
 import { Request, Response } from 'express';
@@ -13,6 +14,7 @@ import {
 } from './exceptionResponse.interface';
 import path from 'path';
 import { QueryFailedError, TypeORMError } from 'typeorm';
+import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -21,18 +23,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    console.log(exception);
     let message = 'Internal server error';
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const errResponse = exception.getResponse();
       message =
         (errResponse as HttpExceptionResponse).message || exception.message;
+    } else if (exception instanceof TokenExpiredError) {
+      statusCode = 401;
+      message = `You json web token is expired : ${exception.expiredAt}`;
+    } else if (exception instanceof JsonWebTokenError) {
+      throw new UnauthorizedException('Invalid token');
     } else if (exception instanceof QueryFailedError) {
       const err: any = exception;
       if (err.code === '23505') {
         statusCode = HttpStatus.CONFLICT;
         message = err.detail;
-      } else {
+      } else if (err.code === '42703') {
+        statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = err.message;
       }
     }
     const errorResponse = this.getErrorResponse(statusCode, message, request);

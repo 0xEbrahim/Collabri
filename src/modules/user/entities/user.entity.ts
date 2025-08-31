@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,9 +13,16 @@ export enum USER_ROLE {
 }
 
 @Entity('users')
+@Index(['provider', 'providerId'])
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  provider?: string | null;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  providerId?: string | null;
 
   @Column({ type: 'varchar', length: 150 })
   name: string;
@@ -26,19 +34,19 @@ export class UserEntity {
   password: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  avatar?: string;
+  avatar?: string | null;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
-  emailVerificationToken?: string;
+  emailVerificationToken?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  emailVerificationTokenExpiry?: Date;
+  emailVerificationTokenExpiry?: Date | null;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
-  passwordResetToken?: string;
+  passwordResetToken?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  passwordResetTokenExpiry?: Date;
+  passwordResetTokenExpiry?: Date | null;
 
   @Column({ type: 'boolean', default: false })
   emailverified: boolean;
