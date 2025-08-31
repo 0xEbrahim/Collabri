@@ -12,6 +12,7 @@ import {
   HttpExceptionResponse,
 } from './exceptionResponse.interface';
 import path from 'path';
+import { QueryFailedError, TypeORMError } from 'typeorm';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -19,18 +20,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    let statusCode: HttpStatus;
-    let message: string;
+    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Internal server error';
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const errResponse = exception.getResponse();
       message =
-        (errResponse as HttpExceptionResponse).error || exception.message;
-    } else {
-      statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+        (errResponse as HttpExceptionResponse).message || exception.message;
+    } else if (exception instanceof QueryFailedError) {
+      const err: any = exception;
+      if (err.code === '23505') {
+        statusCode = HttpStatus.CONFLICT;
+        message = err.detail;
+      } else {
+      }
     }
-
     const errorResponse = this.getErrorResponse(statusCode, message, request);
     const logged = this.getLogError(errorResponse, request, exception);
     await this.logError(logged);
@@ -43,7 +47,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     req: Request,
   ): CustomHttpExceptionResponse => ({
     method: req.method,
-    error: errorMsg,
+    message: errorMsg,
     path: req.originalUrl,
     statusCode: status,
     timeStamp: new Date(),
@@ -54,8 +58,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     req: Request,
     exc: unknown,
   ): string => {
-    const { error, method, path, statusCode, timeStamp } = errResponse;
-    const msg = `Response code: ${statusCode} - Method: ${method} - URL: ${path} - time: [${timeStamp}]\nUSER: ${JSON.stringify(req['user'] ?? 'Not signed in')}\n${exc instanceof HttpException ? exc.stack : error}\n\n`;
+    const { message, method, path, statusCode, timeStamp } = errResponse;
+    const msg = `Response code: ${statusCode} - Method: ${method} - URL: ${path} - time: [${timeStamp}]\nUSER: ${JSON.stringify(req['user'] ?? 'Not signed in')}\n${exc instanceof HttpException ? exc.stack : message}\n\n`;
     return msg;
   };
 

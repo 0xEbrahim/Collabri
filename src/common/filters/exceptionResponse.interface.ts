@@ -1,6 +1,8 @@
+import { TypeORMError } from 'typeorm';
+
 export interface HttpExceptionResponse {
   statusCode: number;
-  error: string;
+  message: any;
 }
 
 export interface CustomHttpExceptionResponse extends HttpExceptionResponse {

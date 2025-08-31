@@ -8,6 +8,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './common/filters/httpExceptions.filter';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserEntity } from './modules/user/entities/user.entity';
 
 @Module({
   imports: [
@@ -24,14 +27,17 @@ import { AllExceptionsFilter } from './common/filters/httpExceptions.filter';
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
         type: 'postgres',
+        database: cfg.get<string>("DB_DB"),
         host: cfg.get<string>('DB_HOST'),
         username: cfg.get<string>('DB_USER'),
         password: cfg.get<string>('DB_PASS'),
         port: cfg.get<number>('DB_PORT'),
         synchronize: cfg.get<boolean>('DB_SYNC'),
-        entities: [],
+        entities: [UserEntity],
       }),
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
