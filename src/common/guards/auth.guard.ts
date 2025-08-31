@@ -21,6 +21,7 @@ export class AuthGuard implements CanActivate {
     token = token.split(' ')[1];
     const payload: JwtPayload = await this.jwt.verifyAccessToken(token);
     request['user'] = { id: payload.id, role: payload.role };
+    console.log('Inside guard');
     return true;
   }
 }

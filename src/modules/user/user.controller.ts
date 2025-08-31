@@ -6,18 +6,30 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  ParseIntPipe,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from 'src/common/decorators/user.decorator';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
+  @UseGuards(AuthGuard)
+  @Get('me')
+  async getProfile(
+    @User(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
+    )
+    userId: number,
+  ) {
+    return await this.userService.getProfile(userId);
   }
 
   @Get()
