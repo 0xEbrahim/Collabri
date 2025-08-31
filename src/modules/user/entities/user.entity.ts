@@ -40,6 +40,9 @@ export class UserEntity {
   @Column({ type: 'timestamp', nullable: true })
   passwordResetTokenExpiry?: Date;
 
+  @Column({ type: 'boolean', default: false })
+  emailverified: boolean;
+
   @Column({ type: 'enum', enum: USER_ROLE, default: USER_ROLE.USER })
   role: USER_ROLE;
 

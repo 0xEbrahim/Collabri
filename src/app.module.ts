@@ -11,6 +11,9 @@ import { AllExceptionsFilter } from './common/filters/httpExceptions.filter';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserEntity } from './modules/user/entities/user.entity';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { dataSourceOptions } from './db/data-source';
 
 @Module({
   imports: [
@@ -18,23 +21,29 @@ import { UserEntity } from './modules/user/entities/user.entity';
       envFilePath: '.env',
       isGlobal: true,
     }),
-    // GraphQLModule.forRoot({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-    // }),
-
-    TypeOrmModule.forRootAsync({
+    MailerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
-        type: 'postgres',
-        database: cfg.get<string>("DB_DB"),
-        host: cfg.get<string>('DB_HOST'),
-        username: cfg.get<string>('DB_USER'),
-        password: cfg.get<string>('DB_PASS'),
-        port: cfg.get<number>('DB_PORT'),
-        synchronize: cfg.get<boolean>('DB_SYNC'),
-        entities: [UserEntity],
+        transport: {
+          host: cfg.get<string>('SMTP_HOST'),
+          port: cfg.get<number>('SMTP_PORT'),
+          auth: {
+            user: cfg.get<string>('SMTP_USER'),
+            pass: cfg.get<string>('SMTP_PASS'),
+          },
+        },
+        template: {
+          dir: __dirname + '/templates',
+          adapter: new EjsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
       }),
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: () => dataSourceOptions,
     }),
     UserModule,
     AuthModule,

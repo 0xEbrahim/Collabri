@@ -17,6 +17,7 @@ const logStream = fs.createWriteStream(
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
