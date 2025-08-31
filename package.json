@@ -21,7 +21,8 @@
     "typeorm": "npx typeorm -d dist/db/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "migration:create": "npm run typeorm -- migration:create"
   },
   "dependencies": {
     "@apollo/server": "^4.12.2",
