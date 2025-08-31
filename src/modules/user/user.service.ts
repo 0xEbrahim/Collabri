@@ -13,13 +13,7 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    let user = await this.UserRepository.findOneBy({
-      email: createUserDto.email,
-    });
-    if (user) throw new ConflictException('Email already exists.');
-    user = this.UserRepository.create(createUserDto);
-    user = await this.UserRepository.save(user);
-    return user;
+   
   }
 
   findAll() {
