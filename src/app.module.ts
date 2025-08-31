@@ -6,6 +6,8 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from './common/filters/httpExceptions.filter';
 
 @Module({
   imports: [
@@ -13,10 +15,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       envFilePath: '.env',
       isGlobal: true,
     }),
-    GraphQLModule.forRoot({
-      driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-    }),
+    // GraphQLModule.forRoot({
+    //   driver: ApolloDriver,
+    //   autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    // }),
+
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
@@ -31,6 +34,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    AppService,
+  ],
 })
 export class AppModule {}
