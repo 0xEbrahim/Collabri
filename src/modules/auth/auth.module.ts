@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { EmailService } from '../email/email.service';
 import { EmailQueueEventListener } from 'src/queue/email/email-queue.events';
 import { EmailQueueProcessor } from 'src/queue/email/email.worker';
+import { BcryptService } from './bcrypt.service';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { EmailQueueProcessor } from 'src/queue/email/email.worker';
     EmailService,
     EmailQueueEventListener,
     EmailQueueProcessor,
+    BcryptService,
   ],
 })
 export class AuthModule {}
