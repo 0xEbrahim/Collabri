@@ -10,6 +10,8 @@ import { EmailQueueProcessor } from 'src/queue/email/email.worker';
 import { BcryptService } from './bcrypt.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTService } from './dto/Jwt.service';
+import { GoogleOAuthGuard } from 'src/common/guards/google.guard';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { JWTService } from './dto/Jwt.service';
     EmailQueueEventListener,
     EmailQueueProcessor,
     BcryptService,
+    GoogleOAuthGuard,
+    GoogleStrategy,
   ],
 })
 export class AuthModule {}

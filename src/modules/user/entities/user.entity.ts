@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,9 +13,16 @@ export enum USER_ROLE {
 }
 
 @Entity('users')
+@Index(['provider', 'providerId'])
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  provider?: string | null;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  providerId?: string | null;
 
   @Column({ type: 'varchar', length: 150 })
   name: string;

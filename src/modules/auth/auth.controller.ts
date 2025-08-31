@@ -1,8 +1,18 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDTO } from './dto/signUp.dto';
 import { LoginDTO } from './dto/login.dto';
 import { RefreshToken } from 'src/common/decorators/refreshToken.decorator';
+import { GoogleOAuthGuard } from 'src/common/guards/google.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +31,16 @@ export class AuthController {
   @Post('refresh')
   async refresh(@RefreshToken() refreshToken: string) {
     return await this.authService.refresh(refreshToken);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  async googleCallback(@Req() req: Request) {
+    return this.authService.handleGoogleOAuth(req['user']);
   }
 
   @Patch('verifyEmail/:code')

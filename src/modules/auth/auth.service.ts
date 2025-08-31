@@ -11,7 +11,12 @@ import { UserEntity } from '../user/entities/user.entity';
 import { MoreThan, Repository } from 'typeorm';
 import { SignUpDTO } from './dto/signUp.dto';
 import { ConfigService } from '@nestjs/config';
-import { IEmail, IResponse, JwtPayload } from 'src/common/types/types';
+import {
+  IEmail,
+  IResponse,
+  JwtPayload,
+  PassportUser,
+} from 'src/common/types/types';
 import path from 'path';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -90,7 +95,7 @@ export class AuthService {
     };
     const token = await this.jwt.generateAccessToken(payload);
     const refreshToken = await this.jwt.generateRefreshToken(payload);
-    return { data: { user }, token, refreshToken };
+    return { token, refreshToken };
   }
 
   async refresh(token: string) {
@@ -127,5 +132,32 @@ export class AuthService {
       message:
         'Email verified successfully, You can login to your account now.',
     };
+  }
+
+  async handleGoogleOAuth({ email, id, avatar, name, provider }: PassportUser) {
+    let user = await this.userRepository.findOneBy({
+      provider: provider,
+      providerId: id,
+    });
+    if (!user) {
+      user = this.userRepository.create({
+        avatar,
+        email,
+        name,
+        provider,
+        providerId: id,
+        emailverified: true,
+        password: crypto.randomBytes(32).toString('hex'),
+      });
+      user.password = await this.bcrypt.hash(user.password);
+      await this.userRepository.save(user);
+    }
+    const payload: JwtPayload = {
+      id: user.id,
+      role: user.role,
+    };
+    const token = await this.jwt.generateAccessToken(payload);
+    const refreshToken = await this.jwt.generateRefreshToken(payload);
+    return { token, refreshToken };
   }
 }

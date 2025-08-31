@@ -23,7 +23,7 @@ export class RoleGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest<Request>();
-    const user: JwtPayload = request['user'];
+    const user: JwtPayload = request['User'];
     if (!roles.includes(user.role)) {
       throw new ForbiddenException('You are not authorized to do this action.');
     }

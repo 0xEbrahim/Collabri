@@ -1,4 +1,4 @@
-import { USER_ROLE } from "src/modules/user/entities/user.entity";
+import { USER_ROLE } from 'src/modules/user/entities/user.entity';
 
 export interface IEmail {
   from: string;
@@ -21,4 +21,12 @@ export interface IResponse {
 export interface JwtPayload {
   id: number;
   role: USER_ROLE;
+}
+
+export interface PassportUser {
+  email: string;
+  avatar: string;
+  name: string;
+  provider: string;
+  id: string;
 }

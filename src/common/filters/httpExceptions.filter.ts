@@ -23,6 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    console.log(exception);
     let message = 'Internal server error';
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -39,6 +40,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (err.code === '23505') {
         statusCode = HttpStatus.CONFLICT;
         message = err.detail;
+      } else if (err.code === '42703') {
+        statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = err.message;
       }
     }
     const errorResponse = this.getErrorResponse(statusCode, message, request);
