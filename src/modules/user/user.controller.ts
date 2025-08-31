@@ -9,12 +9,16 @@ import {
   UseGuards,
   ParseIntPipe,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from 'src/common/decorators/user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { USER_ROLE } from './entities/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -32,9 +36,11 @@ export class UserController {
     return await this.userService.getProfile(userId);
   }
 
+  @Roles(USER_ROLE.ADMIN)
+  @UseGuards(AuthGuard, RoleGuard)
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() q : any) {
+    return this.userService.findAll(q);
   }
 
   @Get(':id')

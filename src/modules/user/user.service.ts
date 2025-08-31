@@ -1,10 +1,8 @@
-import { ConflictException, Injectable, UseGuards } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Injectable()
 export class UserService {
@@ -18,7 +16,13 @@ export class UserService {
     return { data: { user } };
   }
 
-  findAll() {}
+  async findAll(q: any) {
+    const page = q.page ? q.page : 1;
+    const limit = q.limit ? q.limit : 50;
+    const skip = (page - 1) * limit;
+    const users = await this.UserRepository.find({ skip: skip, take: limit });
+    return { data: { users } };
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;

@@ -15,7 +15,6 @@ export class ResponseInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     return next.handle().pipe(
       map((data: IResponse) => {
@@ -23,8 +22,8 @@ export class ResponseInterceptor implements NestInterceptor {
           response.cookie('jwt', data.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000
+            sameSite: 'lax',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
           });
         }
         return {

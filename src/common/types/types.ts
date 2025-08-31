@@ -1,3 +1,5 @@
+import { USER_ROLE } from "src/modules/user/entities/user.entity";
+
 export interface IEmail {
   from: string;
   to: string;
@@ -18,5 +20,5 @@ export interface IResponse {
 
 export interface JwtPayload {
   id: number;
-  role: string;
+  role: USER_ROLE;
 }
