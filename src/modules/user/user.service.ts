@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -13,12 +13,17 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = this.UserRepository.create(createUserDto);
-    return await this.UserRepository.save(user);
+    let user = await this.UserRepository.findOneBy({
+      email: createUserDto.email,
+    });
+    if (user) throw new ConflictException('Email already exists.');
+    user = this.UserRepository.create(createUserDto);
+    user = await this.UserRepository.save(user);
+    return user;
   }
 
   findAll() {
-    return `This action returns all user`;
+    
   }
 
   findOne(id: number) {
