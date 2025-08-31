@@ -14,12 +14,27 @@ import { UserEntity } from './modules/user/entities/user.entity';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { dataSourceOptions } from './db/data-source';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => ({
+        connection: {
+          host: cfg.get<string>('QUEUE_HOST'),
+          port: cfg.get<number>('QUEUE_PORT'),
+        },
+        defaultJobOptions: {
+          attempts: 15,
+          removeOnComplete: 1000,
+          removeOnFail: 2000,
+        },
+      }),
     }),
     MailerModule.forRootAsync({
       inject: [ConfigService],
