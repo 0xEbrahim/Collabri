@@ -19,6 +19,7 @@ export class AuthService {
     if (user) throw new ConflictException('Email already exists.');
     user = this.userRepository.create(signUpDTO);
     user = await this.userRepository.save(user);
+    
     return user;
   }
 }
