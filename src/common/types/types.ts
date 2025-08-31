@@ -15,3 +15,8 @@ export interface IResponse {
   page?: number;
   size?: number;
 }
+
+export interface JwtPayload {
+  id: number;
+  role: string;
+}

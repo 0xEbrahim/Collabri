@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import morgan from 'morgan';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import path from 'path';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 const logStream = fs.createWriteStream(
   path.join(process.cwd(), 'logs', 'api.log'),
@@ -34,6 +35,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.useGlobalInterceptors(new ResponseInterceptor());
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

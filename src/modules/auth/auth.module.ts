@@ -8,9 +8,12 @@ import { EmailService } from '../email/email.service';
 import { EmailQueueEventListener } from 'src/queue/email/email-queue.events';
 import { EmailQueueProcessor } from 'src/queue/email/email.worker';
 import { BcryptService } from './bcrypt.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JWTService } from './dto/Jwt.service';
 
 @Module({
   imports: [
+    JwtModule,
     TypeOrmModule.forFeature([UserEntity]),
     BullModule.registerQueue({ name: 'email' }),
   ],
@@ -18,6 +21,7 @@ import { BcryptService } from './bcrypt.service';
   providers: [
     AuthService,
     EmailService,
+    JWTService,
     EmailQueueEventListener,
     EmailQueueProcessor,
     BcryptService,
