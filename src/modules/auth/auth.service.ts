@@ -93,6 +93,19 @@ export class AuthService {
     return { data: { user }, token, refreshToken };
   }
 
+  async refresh(token: string) {
+    let payload: JwtPayload = await this.jwt.verifyRefreshToken(token);
+    const user = await this.userRepository.findOneBy({ id: payload.id });
+    if (!user)
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    payload = {
+      id: user.id,
+      role: user.role,
+    };
+    const ac_token = await this.jwt.generateAccessToken(payload);
+    return { token: ac_token };
+  }
+
   async verifyEmail(code: string) {
     const encoded = crypto.createHash('sha256').update(code).digest('hex');
     let user = await this.userRepository.findOneBy({
