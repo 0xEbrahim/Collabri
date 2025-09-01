@@ -16,6 +16,7 @@ import path from 'path';
 import { QueryFailedError } from 'typeorm';
 import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 import { GraphQLError } from 'graphql';
+import { GqlContextType } from '@nestjs/graphql';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -25,7 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-
+    // console.log(exception)
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const errResponse = exception.getResponse();
@@ -46,7 +47,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message = err.message;
       }
     }
-    if (!request) {
+    if (host.getType<GqlContextType>() === 'graphql') {
       return new GraphQLError(message, {
         extensions: {
           code: statusCode,
