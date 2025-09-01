@@ -23,7 +23,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    console.log(exception);
     let message = 'Internal server error';
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();

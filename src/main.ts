@@ -16,6 +16,12 @@ const logStream = fs.createWriteStream(
   },
 );
 
+/**
+  TODO:
+    - Setup graphQL
+    - create Get operations on user's
+ */
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -28,7 +34,6 @@ async function bootstrap() {
     origin: '*',
   });
   app.use(cookieParser());
-  app.use(helmet());
   app.use(morgan('tiny', { stream: logStream }));
   app.useGlobalPipes(
     new ValidationPipe({
@@ -36,6 +41,16 @@ async function bootstrap() {
     }),
   );
   app.useGlobalInterceptors(new ResponseInterceptor());
-  await app.listen(process.env.PORT ?? 3000);
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+          imgSrc: ["'self'", 'data:', 'https://cdn.jsdelivr.net'],
+        },
+      },
+    }),
+  );
+  await app.listen(process.env.APP_PORT ?? 3000);
 }
 bootstrap();
