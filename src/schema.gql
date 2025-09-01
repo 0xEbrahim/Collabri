@@ -27,6 +27,7 @@ scalar DateTime
 
 type Query {
   users(query: QueryAllInputType): [UserEntity!]!
+  user(id: Int!): UserEntity!
 }
 
 input QueryAllInputType {
@@ -36,10 +37,17 @@ input QueryAllInputType {
 
 type Mutation {
   createUser(createUser: CreateUserDto!): UserEntity!
+  updateUser(updateUser: UpdateUserDto!): UserEntity!
+  deleteUser(id: Int!): String!
 }
 
 input CreateUserDto {
   name: String!
   email: String!
   password: String!
+}
+
+input UpdateUserDto {
+  id: Int!
+  name: String
 }
