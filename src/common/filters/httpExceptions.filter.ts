@@ -13,8 +13,9 @@ import {
   HttpExceptionResponse,
 } from './exceptionResponse.interface';
 import path from 'path';
-import { QueryFailedError, TypeORMError } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
+import { GraphQLError } from 'graphql';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -24,6 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
+
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const errResponse = exception.getResponse();
@@ -43,6 +45,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         message = err.message;
       }
+    }
+    if (!request) {
+      return new GraphQLError(message, {
+        extensions: {
+          code: statusCode,
+          status: 'Error',
+        },
+      });
     }
     const errorResponse = this.getErrorResponse(statusCode, message, request);
     const logged = this.getLogError(errorResponse, request, exception);
@@ -68,7 +78,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     exc: unknown,
   ): string => {
     const { message, method, path, statusCode, timeStamp } = errResponse;
-    const msg = `Response code: ${statusCode} - Method: ${method} - URL: ${path} - time: [${timeStamp}]\nUSER: ${JSON.stringify(req['user'] ?? 'Not signed in')}\n${exc instanceof HttpException ? exc.stack : message}\n\n`;
+    const msg = `Response code: ${statusCode} - Method: ${method} - URL: ${path} - time: [${timeStamp}]\nUSER: ${JSON.stringify(req?.['user'] ?? 'Not signed in')}\n${exc instanceof HttpException ? exc.stack : message}\n\n`;
     return msg;
   };
 
