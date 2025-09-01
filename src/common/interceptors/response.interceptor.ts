@@ -4,11 +4,10 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {  Response } from 'express';
 import { map, Observable } from 'rxjs';
 import { IResponse } from '../types/types';
-import { token } from 'morgan';
-import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+import { GqlContextType} from '@nestjs/graphql';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -17,7 +16,7 @@ export class ResponseInterceptor implements NestInterceptor {
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
     if (context.getType<GqlContextType>() === 'graphql') {
-      return next.handle();
+      return next.handle()
     }
     const response = context.switchToHttp().getResponse<Response>();
     return next.handle().pipe(

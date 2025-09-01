@@ -12,15 +12,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWTService } from './dto/Jwt.service';
 import { GoogleOAuthGuard } from 'src/common/guards/google.guard';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { TokenEntity } from './entity/token.entity';
 
 @Module({
   imports: [
     JwtModule,
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, TokenEntity]),
     BullModule.registerQueue({ name: 'email' }),
   ],
   controllers: [AuthController],
   providers: [
+    
     AuthService,
     EmailService,
     JWTService,

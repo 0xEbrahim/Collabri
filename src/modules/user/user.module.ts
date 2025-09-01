@@ -7,9 +7,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWTService } from '../auth/dto/Jwt.service';
 import { UserResolver } from './user.resolver';
 import { BcryptService } from '../auth/bcrypt.service';
+import { TokenEntity } from '../auth/entity/token.entity';
 
 @Module({
-  imports: [JwtModule, TypeOrmModule.forFeature([UserEntity])],
+  imports: [JwtModule, TypeOrmModule.forFeature([UserEntity, TokenEntity])],
   controllers: [UserController],
   providers: [UserService, JWTService, UserResolver, BcryptService],
 })
