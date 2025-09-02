@@ -13,6 +13,8 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { dataSourceOptions } from './db/data-source';
 import { BullModule } from '@nestjs/bullmq';
 import { JwtModule } from '@nestjs/jwt';
+import { MessageModule } from './modules/message/message.module';
+import { RoomModule } from './modules/room/room.module';
 
 @Module({
   imports: [
@@ -77,6 +79,8 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     UserModule,
     AuthModule,
+    MessageModule,
+    RoomModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: AllExceptionsFilter }],
 })

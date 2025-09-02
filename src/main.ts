@@ -16,11 +16,7 @@ const logStream = fs.createWriteStream(
   },
 );
 
-/**
-  TODO:
-    - Setup graphQL
-    - create Get operations on user's
- */
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
