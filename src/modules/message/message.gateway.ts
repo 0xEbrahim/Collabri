@@ -12,6 +12,11 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { SocketAuthMiddleware } from 'src/common/middlewares/ws.middleware';
 import { JwtPayload } from 'src/common/types/types';
 import { RoomService } from '../room/room.service';
+import {
+  CreateMessageDto,
+  CreateMessageSocketDto,
+} from './dto/create-message.dto';
+import { MessageService } from './message.service';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
@@ -22,6 +27,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   constructor(
     private readonly socketAuthMW: SocketAuthMiddleware,
     private RoomService: RoomService,
+    private MessageService: MessageService,
   ) {}
 
   onModuleInit() {
@@ -41,10 +47,19 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   }
 
   @SubscribeMessage('joinRoom')
-  onJoinRoom(@MessageBody() room: number, @ConnectedSocket() client: Socket) {
+  async onJoinRoom(
+    @MessageBody() room: number,
+    @ConnectedSocket() client: Socket,
+  ) {
     const user: JwtPayload = client['User'];
-    if (!this.RoomService.joinRoom({ roomId: room, userId: user.id })) {
+    if (
+      !(await this.RoomService.joinDmRoom({ roomId: room, userId: user.id }))
+    ) {
       client.join(`${room}`);
+      this.server
+        .to(`${room}`)
+        .emit('newMember', { message: 'A new member joined' });
+      console.log(`Client[${user.id}] Joined Room[${room}]`);
     }
     this.server.emit('roomJoined', 'You joined the room');
   }
@@ -65,13 +80,24 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
         .to(`${receiverId}`)
         .emit('roomCreated', { roomId: roomId, senderId });
       client.join(`${roomId}`);
+      console.log(`Client[${user.id}] Joined Room[${roomId}]`);
     }
     const room = await this.RoomService.findOne(roomId);
-    this.server.emit('dmOpened', room);
+    const messages = await this.MessageService.getRoomMessages({}, room.id);
+    this.server.emit('dmOpened', { room, messages });
   }
 
-  @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-    return 'Hello world!';
+  @SubscribeMessage('sendMessage')
+  async oneSendMessage(
+    @MessageBody() createMsgDto: CreateMessageSocketDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user: JwtPayload = client['User'];
+    const createMsgBody: CreateMessageDto = {
+      ...createMsgDto,
+      userId: user.id,
+    };
+    const { message, roomId } = await this.MessageService.create(createMsgBody);
+    this.server.to(`${roomId}`).emit('messageSent', message);
   }
 }

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MessageService } from './message.service';
-import { MessageController } from './message.controller';
 import { MessageGateway } from './message.gateway';
 import { JWTService } from '../auth/dto/Jwt.service';
 import { JwtModule } from '@nestjs/jwt';
@@ -22,7 +21,6 @@ import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
       RoomMemberEntity,
     ]),
   ],
-  controllers: [MessageController],
   providers: [
     JWTService,
     MessageService,
