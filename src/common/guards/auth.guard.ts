@@ -11,6 +11,7 @@ import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TokenEntity } from 'src/modules/auth/entity/token.entity';
 import { Repository } from 'typeorm';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,17 +21,28 @@ export class AuthGuard implements CanActivate {
     private TokenRepository: Repository<TokenEntity>,
   ) {}
 
+  private async _handleWSAuthGuard(
+    context: ExecutionContext,
+  ): Promise<boolean> {
+    const client = context.switchToWs().getClient<Socket>();
+    const tk = client.handshake.headers.authorization;
+    const token = this._extractToken(tk);
+    const payload: JwtPayload = await this.jwt.verifyAccessToken(token);
+    client['User'] = { id: payload.id, role: payload.role };
+    return true;
+  }
+
   private async _handleGqlAuthGuard(
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
     const { req } = ctx.getContext();
-    const token = this._extractToken(req);
+    let tk = req.headers.authorization;
+    const token = this._extractToken(tk);
     const payload: JwtPayload = await this.jwt.verifyAccessToken(token);
     req['User'] = { id: payload.id, role: payload.role };
     return true;
   }
-  private _extractToken(req: any) {
-    let token = req.headers.authorization;
+  private _extractToken(token: any) {
     if (!token || !token.startsWith('Bearer ')) {
       throw new UnauthorizedException('Invalid or missing authorization token');
     }
@@ -42,8 +54,12 @@ export class AuthGuard implements CanActivate {
     if (context.getType<GqlContextType>() === 'graphql') {
       return this._handleGqlAuthGuard(GqlExecutionContext.create(context));
     }
+    if (context.getType() === 'ws') {
+      return this._handleWSAuthGuard(context);
+    }
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this._extractToken(request);
+    let tk = request.headers.authorization;
+    const token = this._extractToken(tk);
     const tokenBlocked = await this.TokenRepository.findOneBy({ token: token });
     if (tokenBlocked) {
       throw new UnauthorizedException('Invalid or missing authorization token');
