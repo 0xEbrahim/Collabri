@@ -1,9 +1,11 @@
 import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
+import { RoomMemberEntity } from 'src/modules/room/entities/roomMembers.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -76,4 +78,7 @@ export class UserEntity {
   @Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => RoomMemberEntity, (rm) => rm.user)
+  participated: RoomMemberEntity[];
 }

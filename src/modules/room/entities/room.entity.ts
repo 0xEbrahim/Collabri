@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RoomMemberEntity } from './roomMembers.entity';
 
 @Entity({ name: 'rooms' })
 export class RoomEntity {
@@ -16,6 +17,9 @@ export class RoomEntity {
   @Column({ type: 'varchar', length: 250, nullable: true })
   name?: string;
 
+  @Column({ type: 'boolean' })
+  is_dm: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -24,4 +28,7 @@ export class RoomEntity {
 
   @OneToMany(() => MessageEntity, (msg) => msg.room)
   messages: MessageEntity[];
+
+  @OneToMany(() => RoomMemberEntity, (rm) => rm.room)
+  participated: RoomMemberEntity[];
 }
