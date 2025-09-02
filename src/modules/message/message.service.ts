@@ -12,6 +12,10 @@ export class MessageService {
     return `This action returns all message`;
   }
 
+  async getRoomMessages() {
+    
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} message`;
   }
