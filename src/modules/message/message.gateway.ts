@@ -61,6 +61,9 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
       senderId: senderId,
     });
     if (!client.rooms.has(`${roomId}`)) {
+      this.server
+        .to(`${receiverId}`)
+        .emit('roomCreated', { roomId: roomId, senderId });
       client.join(`${roomId}`);
     }
     const room = await this.RoomService.findOne(roomId);
