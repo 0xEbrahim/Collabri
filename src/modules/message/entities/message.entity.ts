@@ -1,4 +1,5 @@
 import { RoomEntity } from 'src/modules/room/entities/room.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -14,7 +15,7 @@ export class MessageEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  senderId: number;
+  userId: number;
   @Column()
   roomId: number;
   @Column()
@@ -27,4 +28,7 @@ export class MessageEntity {
   @ManyToOne(() => RoomEntity, (room) => room.messages)
   @JoinColumn({ name: 'roomId' })
   room: RoomEntity;
+
+  @ManyToOne(() => UserEntity, user => user.messages)
+  user: UserEntity
 }

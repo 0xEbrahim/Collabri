@@ -1,4 +1,5 @@
 import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
+import { MessageEntity } from 'src/modules/message/entities/message.entity';
 import { RoomMemberEntity } from 'src/modules/room/entities/roomMembers.entity';
 import {
   Column,
@@ -81,4 +82,7 @@ export class UserEntity {
 
   @OneToMany(() => RoomMemberEntity, (rm) => rm.user)
   participated: RoomMemberEntity[];
+
+  @OneToMany(() => MessageEntity, (msg) => msg.user)
+  messages: MessageEntity[];
 }
