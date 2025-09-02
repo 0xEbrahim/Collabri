@@ -36,8 +36,17 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   @SubscribeMessage('initSocket')
   onInitSocket(@ConnectedSocket() client: Socket) {
     const user: JwtPayload = client['User'];
-    this.server.socketsJoin(`${user.id}`);
+    client.join(`${user.id}`);
     console.log(`User joined his room: ${user.id}`);
+  }
+
+  @SubscribeMessage('joinRoom')
+  onJoinRoom(@MessageBody() room: number, @ConnectedSocket() client: Socket) {
+    const user: JwtPayload = client['User'];
+    if (!this.RoomService.joinRoom({ roomId: room, userId: user.id })) {
+      client.join(`${room}`);
+    }
+    this.server.emit('roomJoined', 'You joined the room');
   }
 
   @SubscribeMessage('openDm')

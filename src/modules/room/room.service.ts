@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from './entities/room.entity';
 import { RoomMemberEntity } from './entities/roomMembers.entity';
 import { DataSource, Repository } from 'typeorm';
+import { JoinRoomDTO } from './dto/join-room.dto';
 
 @Injectable()
 export class RoomService {
@@ -15,6 +16,17 @@ export class RoomService {
     private RoomMembers: Repository<RoomMemberEntity>,
     private dataSource: DataSource,
   ) {}
+
+  private async _checkRoomExistance(roomId: number) {
+    const room = await this.RoomEntity.findOne({
+      where: { id: roomId },
+      relations: { messages: true },
+    });
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+    return room;
+  }
 
   create(createRoomDto: CreateRoomDto) {
     return 'This action adds a new room';
@@ -53,14 +65,19 @@ WHERE r.is_dm=true AND rm1."userId"=$1 AND rm2."userId"=$2
     return room;
   }
 
-  async findOne(id: number) {
-    const room = await this.RoomEntity.findOne({
-      where: { id: id },
-      relations: { messages: true },
-    });
-    if (!room) {
-      throw new NotFoundException('Room not found');
+  async joinRoom({ roomId, userId }: JoinRoomDTO) {
+    await this._checkRoomExistance(roomId);
+    let member = await this.RoomMembers.findOneBy({ roomId, userId });
+    if (member) {
+      return true;
     }
+    member = this.RoomMembers.create({ roomId, userId });
+    await this.RoomMembers.save(member);
+    return false;
+  }
+
+  async findOne(id: number) {
+    const room = await this._checkRoomExistance(id);
     return room;
   }
 
