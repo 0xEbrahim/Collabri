@@ -12,5 +12,5 @@ export class DeleteMessageDTO {
   @IsNumber()
   @IsNotEmpty()
   @IsOptional()
-  userId: number;
+  userId?: number;
 }
