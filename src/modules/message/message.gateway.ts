@@ -17,6 +17,7 @@ import {
   CreateMessageSocketDto,
 } from './dto/create-message.dto';
 import { MessageService } from './message.service';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
@@ -82,5 +83,16 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     };
     const { message, roomId } = await this.MessageService.create(createMsgBody);
     this.server.to(`${roomId}`).emit('messageSent', message);
+  }
+
+  @SubscribeMessage('updateMessage')
+  async onUpdateMessage(
+    @MessageBody() data: UpdateMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const message = await this.MessageService.update(data);
+    this.server.to(`${data.roomId}`).emit('messageUpdated', { message });
   }
 }

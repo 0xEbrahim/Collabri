@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -73,8 +74,14 @@ export class MessageService {
     return `This action returns a #${id} message`;
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
+  async update({ message, userId, messageId, roomId }: UpdateMessageDto) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, userId: userId, roomId: roomId },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.message = message;
+    msg = await this.MessageEntity.save(msg);
+    return msg;
   }
 
   remove(id: number) {
