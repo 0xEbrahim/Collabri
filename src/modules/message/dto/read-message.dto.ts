@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
-export class UpdateMessageDto {
+export class UpdateReadMessageDto {
   @IsNumber()
   @IsNotEmpty()
   messageId: number;
@@ -8,10 +8,6 @@ export class UpdateMessageDto {
   @IsNumber()
   @IsNotEmpty()
   roomId: number;
-
-  @IsString()
-  @IsNotEmpty()
-  message: string;
 
   @IsNumber()
   @IsNotEmpty()

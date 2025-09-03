@@ -1,5 +1,6 @@
 import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
 import { MessageEntity } from 'src/modules/message/entities/message.entity';
+import { RoomEntity } from 'src/modules/room/entities/room.entity';
 import { RoomMemberEntity } from 'src/modules/room/entities/roomMembers.entity';
 import {
   Column,
@@ -85,4 +86,7 @@ export class UserEntity {
 
   @OneToMany(() => MessageEntity, (msg) => msg.user)
   messages: MessageEntity[];
+
+  @OneToMany(() => RoomEntity, (room) => room.admin)
+  rooms?: RoomEntity[];
 }

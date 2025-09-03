@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { GetDmRoomDTO } from './dto/getDmRoom.dto';
@@ -7,6 +11,7 @@ import { RoomEntity } from './entities/room.entity';
 import { RoomMemberEntity } from './entities/roomMembers.entity';
 import { DataSource, Repository } from 'typeorm';
 import { JoinRoomDTO } from './dto/join-room.dto';
+import { JoinChatRoomDTO } from './dto/join-chat.dto';
 
 @Injectable()
 export class RoomService {
@@ -27,8 +32,14 @@ export class RoomService {
     return room;
   }
 
-  create(createRoomDto: CreateRoomDto) {
-    return 'This action adds a new room';
+  async create(createRoomDto: CreateRoomDto) {
+    let room = this.RoomEntity.create({
+      name: createRoomDto.name,
+      is_dm: false,
+      userId: createRoomDto.userId!,
+    });
+    room = await this.RoomEntity.save(room);
+    return room;
   }
 
   findAll() {
@@ -60,7 +71,24 @@ WHERE r.is_dm=true AND rm1."userId"=$1 AND rm2."userId"=$2
   }
 
   async joinDmRoom({ roomId, userId }: JoinRoomDTO) {
-    await this._checkRoomExistance(roomId);
+    const room = await this._checkRoomExistance(roomId);
+    if (!room.is_dm) {
+      throw new BadRequestException('This is not a DM chat');
+    }
+    let member = await this.RoomMembers.findOneBy({ roomId, userId });
+    if (member) {
+      return true;
+    }
+    member = this.RoomMembers.create({ roomId, userId });
+    await this.RoomMembers.save(member);
+    return false;
+  }
+
+  async joinChatRoom({ roomId, userId }: JoinChatRoomDTO) {
+    const room = await this._checkRoomExistance(roomId);
+    if (room.is_dm) {
+      throw new BadRequestException('Invalid chat room');
+    }
     let member = await this.RoomMembers.findOneBy({ roomId, userId });
     if (member) {
       return true;

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -12,6 +13,8 @@ import { QueryAllInputType } from 'src/common/input-types/query.inputs';
 import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
 import { RoomEntity } from '../room/entities/room.entity';
 import { RoomService } from '../room/room.service';
+import { DeleteMessageDTO } from './dto/delete-message.dto';
+import { UpdateReadMessageDto } from './dto/read-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -62,7 +65,7 @@ export class MessageService {
     q.page = q.page ?? 1;
     q.limit = q.limit ?? 100;
     const messages = await this.MessageEntity.find({
-      where: { roomId: id },
+      where: { roomId: id, deleted: false },
       skip: (q.page - 1) * q.limit,
       take: q.limit,
     });
@@ -73,11 +76,34 @@ export class MessageService {
     return `This action returns a #${id} message`;
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
+  async update({ message, userId, messageId, roomId }: UpdateMessageDto) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, userId: userId, roomId: roomId, deleted: false },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.message = message;
+    msg = await this.MessageEntity.save(msg);
+    return msg;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+  async updatedReadStatus({ messageId, roomId }: UpdateReadMessageDto) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, roomId: roomId },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.read = true;
+    msg = await this.MessageEntity.save(msg);
+    return msg;
+  }
+
+  async remove({ messageId, roomId, userId }: DeleteMessageDTO) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, userId: userId, roomId: roomId },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.deleted = true;
+    msg.message = 'This message was deleted';
+    msg = await this.MessageEntity.save(msg);
+    return msg;
   }
 }

@@ -20,6 +20,13 @@ export class MessageEntity {
   roomId: number;
   @Column()
   message: string;
+
+  @Column({ default: false })
+  read: boolean;
+
+  @Column({ default: false })
+  deleted: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
@@ -29,6 +36,6 @@ export class MessageEntity {
   @JoinColumn({ name: 'roomId' })
   room: RoomEntity;
 
-  @ManyToOne(() => UserEntity, user => user.messages)
-  user: UserEntity
+  @ManyToOne(() => UserEntity, (user) => user.messages)
+  user: UserEntity;
 }

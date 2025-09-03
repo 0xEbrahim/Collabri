@@ -1,4 +1,4 @@
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseFilters, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -17,9 +17,14 @@ import {
   CreateMessageSocketDto,
 } from './dto/create-message.dto';
 import { MessageService } from './message.service';
+import { UpdateMessageDto } from './dto/update-message.dto';
+import { DeleteMessageDTO } from './dto/delete-message.dto';
+import { UpdateReadMessageDto } from './dto/read-message.dto';
+import { AllExceptionsFilter } from 'src/common/filters/httpExceptions.filter';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
+@UseFilters(new AllExceptionsFilter())
 export class MessageGateway implements OnModuleInit, OnGatewayInit {
   @WebSocketServer()
   server: Server;
@@ -31,9 +36,9 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   ) {}
 
   onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(`Client connected: ${socket.id}`);
-    });
+    // this.server.on('connection', (socket) => {
+    //   console.log(`Client connected: ${socket.id}`);
+    // });
   }
   afterInit(client: Socket) {
     client.use(this.socketAuthMW.use.bind(this.socketAuthMW));
@@ -44,24 +49,6 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     const user: JwtPayload = client['User'];
     client.join(`${user.id}`);
     console.log(`User joined his room: ${user.id}`);
-  }
-
-  @SubscribeMessage('joinRoom')
-  async onJoinRoom(
-    @MessageBody() room: number,
-    @ConnectedSocket() client: Socket,
-  ) {
-    const user: JwtPayload = client['User'];
-    if (
-      !(await this.RoomService.joinDmRoom({ roomId: room, userId: user.id }))
-    ) {
-      client.join(`${room}`);
-      this.server
-        .to(`${room}`)
-        .emit('newMember', { message: 'A new member joined' });
-      console.log(`Client[${user.id}] Joined Room[${room}]`);
-    }
-    this.server.emit('roomJoined', 'You joined the room');
   }
 
   @SubscribeMessage('openDm')
@@ -78,13 +65,13 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     if (!client.rooms.has(`${roomId}`)) {
       this.server
         .to(`${receiverId}`)
-        .emit('roomCreated', { roomId: roomId, senderId });
+        .emit('dmRoomCreated', { roomId: roomId, senderId });
       client.join(`${roomId}`);
       console.log(`Client[${user.id}] Joined Room[${roomId}]`);
     }
     const room = await this.RoomService.findOne(roomId);
     const messages = await this.MessageService.getRoomMessages({}, room.id);
-    this.server.emit('dmOpened', { room, messages });
+    this.server.to(`${receiverId}`).emit('dmOpened', { room, messages });
   }
 
   @SubscribeMessage('sendMessage')
@@ -93,11 +80,45 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     @ConnectedSocket() client: Socket,
   ) {
     const user: JwtPayload = client['User'];
+    console.log(user);
     const createMsgBody: CreateMessageDto = {
       ...createMsgDto,
       userId: user.id,
     };
     const { message, roomId } = await this.MessageService.create(createMsgBody);
     this.server.to(`${roomId}`).emit('messageSent', message);
+  }
+
+  @SubscribeMessage('updateMessage')
+  async onUpdateMessage(
+    @MessageBody() data: UpdateMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const message = await this.MessageService.update(data);
+    this.server.to(`${data.roomId}`).emit('messageUpdated', { message });
+  }
+
+  @SubscribeMessage('deleteMessage')
+  async onDeleteMessage(
+    @MessageBody() data: DeleteMessageDTO,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const message = await this.MessageService.remove(data);
+    this.server.to(`${data.roomId}`).emit('messageDeleted', { message });
+  }
+
+  @SubscribeMessage('readMessage')
+  async onReadMessage(
+    @MessageBody() data: UpdateReadMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const message = await this.MessageService.updatedReadStatus(data);
+    this.server.to(`${data.roomId}`).emit('messageRead', { message });
   }
 }
