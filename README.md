@@ -239,4 +239,4 @@ socket.io - client(url, { authorization: { token: 'Bearer <JWT>' } });
 
 ## License
 
-MIT © 2025 Collabri
+MIT © 2025 Collabri [LICENSE ](https://github.com/0xEbrahim/Collabri/blob/main/LICENSE)
