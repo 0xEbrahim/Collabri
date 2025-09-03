@@ -1,0 +1,67 @@
+import { OnModuleInit } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { SocketAuthMiddleware } from 'src/common/middlewares/ws.middleware';
+import { RoomService } from './room.service';
+import { JwtPayload } from 'src/common/types/types';
+import { CreateRoomDto } from './dto/create-room.dto';
+
+@WebSocketGateway()
+export class RoomGateway implements OnModuleInit, OnGatewayInit {
+  @WebSocketServer()
+  server: Server;
+
+  constructor(
+    private socketAuthMW: SocketAuthMiddleware,
+    private RoomService: RoomService,
+  ) {}
+
+  onModuleInit() {
+    this.server.on('connection', (socket) => {
+      console.log(`Client connected: ${socket.id}`);
+    });
+  }
+
+  afterInit(client: Socket) {
+    client.use(this.socketAuthMW.use.bind(this.socketAuthMW));
+  }
+
+  @SubscribeMessage('joinDmRoom')
+  async onJoinRoom(
+    @MessageBody() room: number,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user: JwtPayload = client['User'];
+    if (
+      !(await this.RoomService.joinDmRoom({ roomId: room, userId: user.id }))
+    ) {
+      client.join(`${room}`);
+      this.server
+        .to(`${room}`)
+        .emit('newMember', { message: 'A new member joined' });
+      console.log(`Client[${user.id}] Joined Room[${room}]`);
+    }
+    this.server.emit('dmRoomJoined', 'You joined the room');
+  }
+
+  @SubscribeMessage('createChatRoom')
+  async onCreateChatRoom(
+    @MessageBody() data: CreateRoomDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const room = await this.RoomService.create(data);
+    this.server.emit('chatRoomCreated', { room, message: 'Room created' });
+    /**
+     Front-End receives this and call joinChatRoom
+     */
+  }
+}

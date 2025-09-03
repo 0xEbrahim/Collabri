@@ -46,23 +46,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     console.log(`User joined his room: ${user.id}`);
   }
 
-  @SubscribeMessage('joinRoom')
-  async onJoinRoom(
-    @MessageBody() room: number,
-    @ConnectedSocket() client: Socket,
-  ) {
-    const user: JwtPayload = client['User'];
-    if (
-      !(await this.RoomService.joinDmRoom({ roomId: room, userId: user.id }))
-    ) {
-      client.join(`${room}`);
-      this.server
-        .to(`${room}`)
-        .emit('newMember', { message: 'A new member joined' });
-      console.log(`Client[${user.id}] Joined Room[${room}]`);
-    }
-    this.server.emit('roomJoined', 'You joined the room');
-  }
+
 
   @SubscribeMessage('openDm')
   async onOpenDm(
@@ -78,7 +62,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     if (!client.rooms.has(`${roomId}`)) {
       this.server
         .to(`${receiverId}`)
-        .emit('roomCreated', { roomId: roomId, senderId });
+        .emit('dmRoomCreated', { roomId: roomId, senderId });
       client.join(`${roomId}`);
       console.log(`Client[${user.id}] Joined Room[${roomId}]`);
     }

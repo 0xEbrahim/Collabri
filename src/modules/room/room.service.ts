@@ -27,8 +27,14 @@ export class RoomService {
     return room;
   }
 
-  create(createRoomDto: CreateRoomDto) {
-    return 'This action adds a new room';
+  async create(createRoomDto: CreateRoomDto) {
+    let room = this.RoomEntity.create({
+      name: createRoomDto.name,
+      is_dm: false,
+      userId: createRoomDto.userId!,
+    });
+    room = await this.RoomEntity.save(room);
+    return room;
   }
 
   findAll() {
