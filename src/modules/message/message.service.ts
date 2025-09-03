@@ -59,7 +59,6 @@ export class MessageService {
       userId: userId,
     });
     message = await this.MessageEntity.save(message);
-    console.log(message);
     this.PubSub.publish(`${SUB_EVENTS.NEW_MSG}:${roomId}`, {
       messageAdded: message,
     });
@@ -70,8 +69,8 @@ export class MessageService {
     return this.PubSub.asyncIterableIterator(`${SUB_EVENTS.NEW_MSG}:${roomID}`);
   }
 
-  findAll() {
-    return `This action returns all message`;
+  async findAll() {
+    return await this.MessageEntity.find();
   }
 
   async getRoomMessages(q: QueryAllInputType, id: number) {

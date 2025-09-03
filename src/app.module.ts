@@ -16,6 +16,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { MessageModule } from './modules/message/message.module';
 import { RoomModule } from './modules/room/room.module';
 import { PubsubModule } from './modules/pubsub/pubsub.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { DateTimeResolver } from 'graphql-scalars';
 
 @Module({
   imports: [
@@ -76,9 +78,17 @@ import { PubsubModule } from './modules/pubsub/pubsub.module';
       subscriptions: {
         'graphql-ws': true,
       },
+      resolvers: { DateTime: DateTimeResolver },
       context: ({ req, res }) => ({
         req,
         res,
+      }),
+    }),
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => ({
+        type: 'single',
+        url: cfg.get<string>('REDIS_URI'),
       }),
     }),
     UserModule,

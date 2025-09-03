@@ -38,12 +38,12 @@ export class MessageEntity {
   @Field(() => Boolean, { nullable: true })
   deleted: boolean;
 
+  @Field(() => Date)
   @CreateDateColumn()
-  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
+  @Field(() => Date)
   @UpdateDateColumn()
-  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 
   @ManyToOne(() => RoomEntity, (room) => room.messages)

@@ -39,6 +39,7 @@ type UserEntity {
 type Query {
   users(query: QueryAllInputType): [UserEntity!]!
   user(id: Int!): UserEntity!
+  messages: [MessageEntity!]!
 }
 
 input QueryAllInputType {
