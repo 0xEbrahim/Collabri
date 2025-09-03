@@ -65,7 +65,7 @@ export class MessageService {
     q.page = q.page ?? 1;
     q.limit = q.limit ?? 100;
     const messages = await this.MessageEntity.find({
-      where: { roomId: id },
+      where: { roomId: id, deleted: false },
       skip: (q.page - 1) * q.limit,
       take: q.limit,
     });
@@ -78,7 +78,7 @@ export class MessageService {
 
   async update({ message, userId, messageId, roomId }: UpdateMessageDto) {
     let msg = await this.MessageEntity.findOne({
-      where: { id: messageId, userId: userId, roomId: roomId },
+      where: { id: messageId, userId: userId, roomId: roomId, deleted: false },
     });
     if (!msg) throw new NotFoundException('Message not found');
     msg.message = message;
@@ -86,9 +86,9 @@ export class MessageService {
     return msg;
   }
 
-  async updatedReadStatus({ messageId, roomId, userId }: UpdateReadMessageDto) {
+  async updatedReadStatus({ messageId, roomId }: UpdateReadMessageDto) {
     let msg = await this.MessageEntity.findOne({
-      where: { id: messageId, userId: userId, roomId: roomId },
+      where: { id: messageId, roomId: roomId },
     });
     if (!msg) throw new NotFoundException('Message not found');
     msg.read = true;

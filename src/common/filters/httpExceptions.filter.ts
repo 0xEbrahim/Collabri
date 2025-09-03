@@ -17,17 +17,19 @@ import { QueryFailedError } from 'typeorm';
 import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 import { GraphQLError } from 'graphql';
 import { GqlContextType } from '@nestjs/graphql';
-import { WsException } from '@nestjs/websockets';
+import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
 
 @Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
+export class AllExceptionsFilter
+  extends BaseWsExceptionFilter
+  implements ExceptionFilter
+{
   async catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    // console.log(exception)
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const errResponse = exception.getResponse();
@@ -57,7 +59,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
     if (host.getType() === 'ws') {
-      return new WsException(message);
+      const client = host.switchToWs().getClient();
+      client.emit('exception', {
+        status: 'error',
+        message: 'Database query failed',
+      });
+      return;
     }
     const errorResponse = this.getErrorResponse(statusCode, message, request);
     const logged = this.getLogError(errorResponse, request, exception);

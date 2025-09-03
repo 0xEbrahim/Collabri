@@ -1,4 +1,4 @@
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseFilters, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -14,6 +14,7 @@ import { JwtPayload } from 'src/common/types/types';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinChatRoomDTO } from './dto/join-chat.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AllExceptionsFilter } from 'src/common/filters/httpExceptions.filter';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)

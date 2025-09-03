@@ -1,4 +1,4 @@
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseFilters, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -20,9 +20,11 @@ import { MessageService } from './message.service';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { DeleteMessageDTO } from './dto/delete-message.dto';
 import { UpdateReadMessageDto } from './dto/read-message.dto';
+import { AllExceptionsFilter } from 'src/common/filters/httpExceptions.filter';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
+@UseFilters(new AllExceptionsFilter())
 export class MessageGateway implements OnModuleInit, OnGatewayInit {
   @WebSocketServer()
   server: Server;
@@ -69,7 +71,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     }
     const room = await this.RoomService.findOne(roomId);
     const messages = await this.MessageService.getRoomMessages({}, room.id);
-    this.server.emit('dmOpened', { room, messages });
+    this.server.to(`${receiverId}`).emit('dmOpened', { room, messages });
   }
 
   @SubscribeMessage('sendMessage')
