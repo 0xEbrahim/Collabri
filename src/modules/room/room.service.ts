@@ -12,6 +12,7 @@ import { RoomMemberEntity } from './entities/roomMembers.entity';
 import { DataSource, Repository } from 'typeorm';
 import { JoinRoomDTO } from './dto/join-room.dto';
 import { JoinChatRoomDTO } from './dto/join-chat.dto';
+import { LeaveChatRoomDTO } from './dto/leave-chat.dto';
 
 @Injectable()
 export class RoomService {
@@ -95,6 +96,19 @@ WHERE r.is_dm=true AND rm1."userId"=$1 AND rm2."userId"=$2
     }
     member = this.RoomMembers.create({ roomId, userId });
     await this.RoomMembers.save(member);
+    return false;
+  }
+
+  async leaveChatRoom({ roomId, userId }: LeaveChatRoomDTO) {
+    let room = await this.RoomEntity.findOneBy({ id: roomId, is_dm: false });
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+    let member = await this.RoomMembers.findOneBy({ roomId, userId });
+    if (!member) {
+      return true;
+    }
+    await this.RoomMembers.delete({ roomId: roomId, userId: userId });
     return false;
   }
 

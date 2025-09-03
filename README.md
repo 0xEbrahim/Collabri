@@ -159,6 +159,7 @@ socket.io - client(url, { authorization: { token: 'Bearer <JWT>' } });
 - `joinDmRoom` → `roomId`
 - `createChatRoom` → `{ name}`
 - `joinChatRoom` → `{ roomId}`
+- `leaveChatRoom` → `{  roomId}`
 
 #### Server → Client
 
@@ -171,6 +172,7 @@ socket.io - client(url, { authorization: { token: 'Bearer <JWT>' } });
 - `newMember` → `{  message: "A new member joined"}`
 - `chatRoomCreated` → `{ room, message: "Room created"}`
 - `chatRoomJoined` → `You joined the room`
+- `chatRoomLeft` → `{ message: "You left the room"}`
 
 ---
 

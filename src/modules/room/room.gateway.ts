@@ -14,6 +14,7 @@ import { JwtPayload } from 'src/common/types/types';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinChatRoomDTO } from './dto/join-chat.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { LeaveChatRoomDTO } from './dto/leave-chat.dto';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
@@ -76,7 +77,6 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
     @ConnectedSocket() client: Socket,
   ) {
     const user = client['User'];
-    console.log(user);
     data.userId = user.id;
     if (!(await this.RoomService.joinChatRoom(data))) {
       client.join(`${data.roomId}`);
@@ -86,6 +86,20 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
         .emit('newMember', { message: 'A new member joined' });
       console.log(`Client[${user.id}] joiend Room[${data.roomId}]`);
       this.server.emit('chatRoomJoined', 'You joined the room');
+    }
+  }
+
+  @SubscribeMessage('leaveChatRoom')
+  async onLeaveChatRoom(
+    @MessageBody() data: LeaveChatRoomDTO,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    if (!(await this.RoomService.leaveChatRoom(data))) {
+      client.leave(`${data.roomId}`);
+      console.log(`Client[${user.id}] left Room[${data.roomId}]`);
+      this.server.emit('chatRoomLeft', { message: 'You left the room' });
     }
   }
 }
