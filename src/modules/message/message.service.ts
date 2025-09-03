@@ -14,6 +14,7 @@ import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
 import { RoomEntity } from '../room/entities/room.entity';
 import { RoomService } from '../room/room.service';
 import { DeleteMessageDTO } from './dto/delete-message.dto';
+import { UpdateReadMessageDto } from './dto/read-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -81,6 +82,16 @@ export class MessageService {
     });
     if (!msg) throw new NotFoundException('Message not found');
     msg.message = message;
+    msg = await this.MessageEntity.save(msg);
+    return msg;
+  }
+
+  async updatedReadStatus({ messageId, roomId, userId }: UpdateReadMessageDto) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, userId: userId, roomId: roomId },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.read = true;
     msg = await this.MessageEntity.save(msg);
     return msg;
   }
