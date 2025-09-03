@@ -1,4 +1,4 @@
-import { OnModuleInit } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -13,8 +13,10 @@ import { RoomService } from './room.service';
 import { JwtPayload } from 'src/common/types/types';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinChatRoomDTO } from './dto/join-chat.dto';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @WebSocketGateway()
+@UseGuards(AuthGuard)
 export class RoomGateway implements OnModuleInit, OnGatewayInit {
   @WebSocketServer()
   server: Server;
@@ -25,6 +27,7 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
   ) {}
 
   onModuleInit() {
+    this.server.use(this.socketAuthMW.use.bind(this.socketAuthMW));
     this.server.on('connection', (socket) => {
       console.log(`Client connected: ${socket.id}`);
     });
@@ -58,6 +61,7 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
     @ConnectedSocket() client: Socket,
   ) {
     const user = client['User'];
+    console.log(user);
     data.userId = user.id;
     const room = await this.RoomService.create(data);
     this.server.emit('chatRoomCreated', { room, message: 'Room created' });
@@ -72,6 +76,7 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
     @ConnectedSocket() client: Socket,
   ) {
     const user = client['User'];
+    console.log(user);
     data.userId = user.id;
     if (!(await this.RoomService.joinChatRoom(data))) {
       client.join(`${data.roomId}`);

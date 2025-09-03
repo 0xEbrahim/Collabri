@@ -31,9 +31,9 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   ) {}
 
   onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(`Client connected: ${socket.id}`);
-    });
+    // this.server.on('connection', (socket) => {
+    //   console.log(`Client connected: ${socket.id}`);
+    // });
   }
   afterInit(client: Socket) {
     client.use(this.socketAuthMW.use.bind(this.socketAuthMW));
@@ -45,8 +45,6 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     client.join(`${user.id}`);
     console.log(`User joined his room: ${user.id}`);
   }
-
-
 
   @SubscribeMessage('openDm')
   async onOpenDm(
@@ -77,6 +75,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     @ConnectedSocket() client: Socket,
   ) {
     const user: JwtPayload = client['User'];
+    console.log(user);
     const createMsgBody: CreateMessageDto = {
       ...createMsgDto,
       userId: user.id,

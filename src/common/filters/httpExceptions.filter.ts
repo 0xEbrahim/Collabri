@@ -17,6 +17,7 @@ import { QueryFailedError } from 'typeorm';
 import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 import { GraphQLError } from 'graphql';
 import { GqlContextType } from '@nestjs/graphql';
+import { WsException } from '@nestjs/websockets';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -54,6 +55,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
           status: 'Error',
         },
       });
+    }
+    if (host.getType() === 'ws') {
+      return new WsException(message);
     }
     const errorResponse = this.getErrorResponse(statusCode, message, request);
     const logged = this.getLogError(errorResponse, request, exception);
