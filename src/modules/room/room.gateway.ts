@@ -12,6 +12,7 @@ import { SocketAuthMiddleware } from 'src/common/middlewares/ws.middleware';
 import { RoomService } from './room.service';
 import { JwtPayload } from 'src/common/types/types';
 import { CreateRoomDto } from './dto/create-room.dto';
+import { JoinChatRoomDTO } from './dto/join-chat.dto';
 
 @WebSocketGateway()
 export class RoomGateway implements OnModuleInit, OnGatewayInit {
@@ -47,8 +48,8 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
         .to(`${room}`)
         .emit('newMember', { message: 'A new member joined' });
       console.log(`Client[${user.id}] Joined Room[${room}]`);
+      this.server.emit('dmRoomJoined', 'You joined the room');
     }
-    this.server.emit('dmRoomJoined', 'You joined the room');
   }
 
   @SubscribeMessage('createChatRoom')
@@ -63,5 +64,23 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
     /**
      Front-End receives this and call joinChatRoom
      */
+  }
+
+  @SubscribeMessage('joinChatRoom')
+  async onJoinChatRoom(
+    @MessageBody() data: JoinChatRoomDTO,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    if (!(await this.RoomService.joinChatRoom(data))) {
+      client.join(`${data.roomId}`);
+      client.join(`${data.roomId}`);
+      this.server
+        .to(`${data.roomId}`)
+        .emit('newMember', { message: 'A new member joined' });
+      console.log(`Client[${user.id}] joiend Room[${data.roomId}]`);
+      this.server.emit('chatRoomJoined', 'You joined the room');
+    }
   }
 }
