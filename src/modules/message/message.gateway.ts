@@ -21,6 +21,8 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 import { DeleteMessageDTO } from './dto/delete-message.dto';
 import { UpdateReadMessageDto } from './dto/read-message.dto';
 import { AllExceptionsFilter } from 'src/common/filters/httpExceptions.filter';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
@@ -30,6 +32,7 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   server: Server;
 
   constructor(
+    @InjectRedis() private redis: Redis,
     private readonly socketAuthMW: SocketAuthMiddleware,
     private RoomService: RoomService,
     private MessageService: MessageService,
@@ -45,9 +48,10 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
   }
 
   @SubscribeMessage('initSocket')
-  onInitSocket(@ConnectedSocket() client: Socket) {
+  async onInitSocket(@ConnectedSocket() client: Socket) {
     const user: JwtPayload = client['User'];
     client.join(`${user.id}`);
+    await this.redis.sadd(`rooms:${user.id}`, `${user.id}`);
     console.log(`User joined his room: ${user.id}`);
   }
 
@@ -63,11 +67,11 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
       senderId: senderId,
     });
     if (!client.rooms.has(`${roomId}`)) {
+      client.join(`${roomId}`);
+    await this.redis.sadd(`rooms:${user.id}`, `${roomId}`);
       this.server
         .to(`${receiverId}`)
         .emit('dmRoomCreated', { roomId: roomId, senderId });
-      client.join(`${roomId}`);
-      console.log(`Client[${user.id}] Joined Room[${roomId}]`);
     }
     const room = await this.RoomService.findOne(roomId);
     const messages = await this.MessageService.getRoomMessages({}, room.id);

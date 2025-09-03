@@ -15,8 +15,9 @@ export class SocketAuthMiddleware {
         );
       }
       token = token.split(' ')[1];
-      const payload: JwtPayload = await this.jwtService.verifyAccessToken(token);
-      client['user'] = { id: payload.id, role: payload.role };
+      const payload: JwtPayload =
+        await this.jwtService.verifyAccessToken(token);
+      client['User'] = { id: payload.id, role: payload.role };
       next();
     } catch (err) {
       next(err);
