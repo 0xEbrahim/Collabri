@@ -18,6 +18,7 @@ import {
 } from './dto/create-message.dto';
 import { MessageService } from './message.service';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { DeleteMessageDTO } from './dto/delete-message.dto';
 
 @WebSocketGateway()
 @UseGuards(AuthGuard)
@@ -94,5 +95,16 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
     data.userId = user.id;
     const message = await this.MessageService.update(data);
     this.server.to(`${data.roomId}`).emit('messageUpdated', { message });
+  }
+
+  @SubscribeMessage('deleteMessage')
+  async onDeleteMessage(
+    @MessageBody() data: DeleteMessageDTO,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = client['User'];
+    data.userId = user.id;
+    const message = await this.MessageService.remove(data);
+    this.server.to(`${data.roomId}`).emit('messageDeleted', { message });
   }
 }

@@ -13,6 +13,7 @@ import { QueryAllInputType } from 'src/common/input-types/query.inputs';
 import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
 import { RoomEntity } from '../room/entities/room.entity';
 import { RoomService } from '../room/room.service';
+import { DeleteMessageDTO } from './dto/delete-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -84,7 +85,14 @@ export class MessageService {
     return msg;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+  async remove({ messageId, roomId, userId }: DeleteMessageDTO) {
+    let msg = await this.MessageEntity.findOne({
+      where: { id: messageId, userId: userId, roomId: roomId },
+    });
+    if (!msg) throw new NotFoundException('Message not found');
+    msg.deleted = true;
+    msg.message = 'This message was deleted';
+    msg = await this.MessageEntity.save(msg);
+    return msg;
   }
 }
