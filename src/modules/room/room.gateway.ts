@@ -79,14 +79,13 @@ export class RoomGateway implements OnModuleInit, OnGatewayInit {
     const user = client['User'];
     data.userId = user.id;
     if (!(await this.RoomService.joinChatRoom(data))) {
-      client.join(`${data.roomId}`);
-      client.join(`${data.roomId}`);
       this.server
         .to(`${data.roomId}`)
         .emit('newMember', { message: 'A new member joined' });
       console.log(`Client[${user.id}] joiend Room[${data.roomId}]`);
       this.server.emit('chatRoomJoined', 'You joined the room');
     }
+    client.join(`${data.roomId}`);
   }
 
   @SubscribeMessage('leaveChatRoom')

@@ -15,6 +15,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { JwtModule } from '@nestjs/jwt';
 import { MessageModule } from './modules/message/message.module';
 import { RoomModule } from './modules/room/room.module';
+import { PubsubModule } from './modules/pubsub/pubsub.module';
 
 @Module({
   imports: [
@@ -72,6 +73,9 @@ import { RoomModule } from './modules/room/room.module';
       driver: ApolloDriver,
       csrfPrevention: false,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      subscriptions: {
+        'graphql-ws': true,
+      },
       context: ({ req, res }) => ({
         req,
         res,
@@ -81,6 +85,7 @@ import { RoomModule } from './modules/room/room.module';
     AuthModule,
     MessageModule,
     RoomModule,
+    PubsubModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: AllExceptionsFilter }],
 })

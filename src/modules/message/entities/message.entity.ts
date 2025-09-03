@@ -1,3 +1,4 @@
+import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
 import { RoomEntity } from 'src/modules/room/entities/room.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import {
@@ -11,25 +12,38 @@ import {
 } from 'typeorm';
 
 @Entity({ name: 'messages' })
+@ObjectType()
 export class MessageEntity {
   @PrimaryGeneratedColumn()
+  @Field(() => Int)
   id: number;
+
   @Column()
+  @Field(() => Int)
   userId: number;
+
   @Column()
+  @Field(() => Int)
   roomId: number;
+
   @Column()
+  @Field(() => String)
   message: string;
 
   @Column({ default: false })
+  @Field(() => Boolean, { nullable: true })
   read: boolean;
 
   @Column({ default: false })
+  @Field(() => Boolean, { nullable: true })
   deleted: boolean;
 
   @CreateDateColumn()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
   @UpdateDateColumn()
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 
   @ManyToOne(() => RoomEntity, (room) => room.messages)

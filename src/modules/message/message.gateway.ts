@@ -66,9 +66,8 @@ export class MessageGateway implements OnModuleInit, OnGatewayInit {
       this.server
         .to(`${receiverId}`)
         .emit('dmRoomCreated', { roomId: roomId, senderId });
-      client.join(`${roomId}`);
-      console.log(`Client[${user.id}] Joined Room[${roomId}]`);
     }
+    client.join(`${roomId}`);
     const room = await this.RoomService.findOne(roomId);
     const messages = await this.MessageService.getRoomMessages({}, room.id);
     this.server.to(`${receiverId}`).emit('dmOpened', { room, messages });

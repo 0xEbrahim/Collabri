@@ -10,6 +10,7 @@ import { RoomService } from '../room/room.service';
 import { RoomEntity } from '../room/entities/room.entity';
 import { MessageEntity } from './entities/message.entity';
 import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
+import { MessageResolver } from './message.resolver';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RoomMemberEntity } from '../room/entities/roomMembers.entity';
     MessageGateway,
     SocketAuthMiddleware,
     RoomService,
+    MessageResolver,
   ],
 })
 export class MessageModule {}

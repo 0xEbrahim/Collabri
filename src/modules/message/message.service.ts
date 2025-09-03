@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,9 @@ import { RoomEntity } from '../room/entities/room.entity';
 import { RoomService } from '../room/room.service';
 import { DeleteMessageDTO } from './dto/delete-message.dto';
 import { UpdateReadMessageDto } from './dto/read-message.dto';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { PUB_SUB } from '../pubsub/pubsub.module';
+import { SUB_EVENTS } from 'src/common/types/enums';
 
 @Injectable()
 export class MessageService {
@@ -24,6 +28,7 @@ export class MessageService {
     @InjectRepository(RoomEntity) private RoomEntity: Repository<RoomEntity>,
     @InjectRepository(RoomMemberEntity)
     private RoomMembers: Repository<RoomMemberEntity>,
+    @Inject(PUB_SUB) private PubSub: RedisPubSub,
     private RoomService: RoomService,
   ) {}
 
@@ -54,7 +59,15 @@ export class MessageService {
       userId: userId,
     });
     message = await this.MessageEntity.save(message);
+    console.log(message);
+    this.PubSub.publish(`${SUB_EVENTS.NEW_MSG}:${roomId}`, {
+      messageAdded: message,
+    });
     return { message, roomId: roomId };
+  }
+
+  newMessage(roomID: number) {
+    return this.PubSub.asyncIterableIterator(`${SUB_EVENTS.NEW_MSG}:${roomID}`);
   }
 
   findAll() {
